@@ -1,0 +1,5 @@
+# Outils téléchargés par scripts/build-apk.sh (~600 Mo) — à ne PAS versionner
+tools/
+# Artéfacts de build intermédiaires
+build/
+keystore/

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.brunochat.app">
+
+    <!-- Accès au site et aux API de chat (toutes en HTTPS) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Visibilité des navigateurs externes (liens ouverts hors de l'app) -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+    </queries>
+
+    <application
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:hardwareAccelerated="true"
+        android:usesCleartextTraffic="false"
+        android:allowBackup="true"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|keyboard|keyboardHidden|screenLayout|smallestScreenSize|uiMode|density"
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
