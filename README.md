@@ -9,8 +9,8 @@ l'affiche en plein écran et ajoute le confort natif Android.
 - **Écran d'accueil (splash) dynamique** : petit logo + grand « BRUNO CHAT »
   (animations d'entrée), puis transition en fondu vers l'interface de chat.
 - **Plein écran immersif permanent** : heure / batterie / % masqués, **y compris
-  pendant la saisie** — la page est poussée au-dessus du clavier par
-  `adjustResize` (les barres système ne réapparaissent pas).
+  pendant la saisie** — la hauteur du clavier est mesurée et appliquée en
+  padding bas, le champ de saisie reste donc visible au-dessus du clavier.
 - **Photos** : le sélecteur de fichiers Android s'ouvre pour les pièces
   jointes (images multiples).
 - **Liens externes** ouverts dans le navigateur ; **bouton retour** =
@@ -22,6 +22,7 @@ l'affiche en plein écran et ajoute le confort natif Android.
 
 | Version | Code | Contenu |
 |---|---|---|
+| 1.2.0 | 6 | Correctif : le champ de saisie reste visible au-dessus du clavier (padding mesuré) + plein écran conservé |
 | 1.1.1 | 5 | Correctif : plein écran conservé pendant la saisie (heure/batterie ne réapparaissent plus) |
 | 1.1.0 | 4 | Splash screen dynamique (dernière) |
 | 1.0.2 | 3 | Plein écran + correctif clavier + mode fluide |

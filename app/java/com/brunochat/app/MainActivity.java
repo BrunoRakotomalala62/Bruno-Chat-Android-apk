@@ -46,8 +46,10 @@ import android.widget.TextView;
  *  - écran d'accueil (splash) dynamique : petit logo + grand « BRUNO CHAT »,
  *    animations d'entrée, puis transition douce vers l'interface de chat ;
  *  - plein écran immersif permanent (heure/batterie masquées, y compris
- *    pendant la saisie : la page est poussée au-dessus du clavier par
- *    windowSoftInputMode="adjustResize") ;
+ *    pendant la saisie) : la hauteur du clavier est mesurée et appliquée
+ *    en padding bas sur la page, qui reste donc visible au-dessus du
+ *    clavier (windowSoftInputMode="adjustResize" est souvent ignoré en
+ *    plein écran → on pousse la page manuellement) ;
  *  - sélection de photos (pièces jointes), liens externes dans le navigateur,
  *    bouton « retour » = historique du chat ;
  *  - si l'appareil est lent (fps < 35), le fond décoratif animé du site est
@@ -62,6 +64,7 @@ public class MainActivity extends Activity {
 
     private WebView webView;
     private View splash;
+    private View rootView; // vue racine (padding bas = hauteur du clavier)
     private boolean keyboardVisible = false;
     private boolean pageLoaded = false;
     private boolean splashHidden = false;
@@ -79,6 +82,7 @@ public class MainActivity extends Activity {
         // ---------- Racine ----------
         RelativeLayout root = new RelativeLayout(this);
         root.setBackgroundColor(0xFF0B0F1E);
+        rootView = root;
 
         // WebView (chargée immédiatement, révélée après le splash)
         webView = new WebView(this);
@@ -91,10 +95,10 @@ public class MainActivity extends Activity {
         // Plein écran immersif : masque heure / batterie / % et barre du bas.
         hideSystemUI();
 
-        // Détecte l'ouverture/fermeture du clavier : à chaque changement de
-        // layout (le clavier redimensionne la fenêtre via adjustResize), on
-        // ré-applique le plein écran — le système ne doit jamais réafficher
-        // l'heure / la batterie, même pendant la saisie.
+        // Détecte l'ouverture/fermeture du clavier : on pousse alors la page
+        // au-dessus du clavier via un padding mesuré (le plein écran reste
+        // actif — windowSoftInputMode est "adjustNothing", car en plein écran
+        // Android ignore adjustResize et le clavier recouvrirait le champ).
         root.getViewTreeObserver().addOnGlobalLayoutListener(onLayoutChange);
 
         // ---------- Écran d'accueil (splash) ----------
@@ -328,15 +332,23 @@ public class MainActivity extends Activity {
             keyboardVisible = kb;
             applySystemUi();
         }
+        // Pousse la page au-dessus du clavier : un padding bas égal à la
+        // hauteur du clavier (diff) réduit la zone de la WebView. Le plein
+        // écran reste actif — l'heure/la batterie ne réapparaissent pas.
+        if (rootView != null) {
+            int pad = kb ? Math.max(diff, 0) : 0;
+            if (rootView.getPaddingBottom() != pad) {
+                rootView.setPadding(0, 0, 0, pad);
+            }
+        }
     };
 
     /**
      * Plein écran permanent : on ne réaffiche JAMAIS les barres système,
-     * même quand le clavier est ouvert. La page est poussée au-dessus du
-     * clavier par windowSoftInputMode="adjustResize" (manifest), qui
-     * redimensionne la fenêtre sans avoir besoin de sortir du plein écran —
-     * l'heure / la batterie / la barre de navigation restent donc masquées
-     * pendant la saisie.
+     * même quand le clavier est ouvert. Le champ de saisie reste visible
+     * car la page est poussée au-dessus du clavier par le padding appliqué
+     * dans onLayoutChange (windowSoftInputMode="adjustNothing" : le
+     * redimensionnement est entièrement manuel, fiable même en plein écran).
      */
     private void applySystemUi() {
         hideSystemUI();
