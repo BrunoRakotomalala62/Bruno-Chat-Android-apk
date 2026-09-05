@@ -45,8 +45,9 @@ import android.widget.TextView;
  * Démarrage :
  *  - écran d'accueil (splash) dynamique : petit logo + grand « BRUNO CHAT »,
  *    animations d'entrée, puis transition douce vers l'interface de chat ;
- *  - plein écran immersif (heure/batterie masquées), avec sortie temporaire
- *    du plein écran pendant la saisie (clavier → la page est poussée vers le haut) ;
+ *  - plein écran immersif permanent (heure/batterie masquées, y compris
+ *    pendant la saisie : la page est poussée au-dessus du clavier par
+ *    windowSoftInputMode="adjustResize") ;
  *  - sélection de photos (pièces jointes), liens externes dans le navigateur,
  *    bouton « retour » = historique du chat ;
  *  - si l'appareil est lent (fps < 35), le fond décoratif animé du site est
@@ -90,7 +91,10 @@ public class MainActivity extends Activity {
         // Plein écran immersif : masque heure / batterie / % et barre du bas.
         hideSystemUI();
 
-        // Détecte l'ouverture/fermeture du clavier pour adapter le mode écran.
+        // Détecte l'ouverture/fermeture du clavier : à chaque changement de
+        // layout (le clavier redimensionne la fenêtre via adjustResize), on
+        // ré-applique le plein écran — le système ne doit jamais réafficher
+        // l'heure / la batterie, même pendant la saisie.
         root.getViewTreeObserver().addOnGlobalLayoutListener(onLayoutChange);
 
         // ---------- Écran d'accueil (splash) ----------
@@ -326,19 +330,24 @@ public class MainActivity extends Activity {
         }
     };
 
-    @SuppressWarnings("deprecation")
+    /**
+     * Plein écran permanent : on ne réaffiche JAMAIS les barres système,
+     * même quand le clavier est ouvert. La page est poussée au-dessus du
+     * clavier par windowSoftInputMode="adjustResize" (manifest), qui
+     * redimensionne la fenêtre sans avoir besoin de sortir du plein écran —
+     * l'heure / la batterie / la barre de navigation restent donc masquées
+     * pendant la saisie.
+     */
     private void applySystemUi() {
-        if (keyboardVisible) {
-            getWindow().getDecorView().setSystemUiVisibility(0);
-        } else {
-            hideSystemUI();
-        }
+        hideSystemUI();
     }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if (hasFocus && !keyboardVisible) hideSystemUI();
+        // Toujours en plein écran dès que la fenêtre a le focus (même si le
+        // clavier est ouvert) : les barres système ne réapparaissent pas.
+        if (hasFocus) hideSystemUI();
     }
 
     @SuppressWarnings("deprecation")
