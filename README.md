@@ -22,6 +22,7 @@ l'affiche en plein écran et ajoute le confort natif Android.
 
 | Version | Code | Contenu |
 |---|---|---|
+| 1.3.2 | 9 | Splash screen affiché ~5 s |
 | 1.3.1 | 8 | Splash screen affiché ~10 s |
 | 1.3.0 | 7 | Nouveau logo premium (bulle de chat 3D + étincelle IA) + icônes adaptatives Android 8+ |
 | 1.2.0 | 6 | Correctif : le champ de saisie reste visible au-dessus du clavier (padding mesuré) + plein écran conservé |

@@ -59,8 +59,8 @@ public class MainActivity extends Activity {
 
     private static final String APP_URL = "https://site-gratuit-dynamique.vercel.app/";
     private static final String APP_HOST = "site-gratuit-dynamique.vercel.app";
-    private static final long MIN_SPLASH_MS = 10000; // durée min du splash : ~10 s
-    private static final long MAX_SPLASH_MS = 20000; // sécurité si réseau très lent (>20 s)
+    private static final long MIN_SPLASH_MS = 5000; // durée min du splash : ~5 s
+    private static final long MAX_SPLASH_MS = 15000; // sécurité si réseau très lent (>15 s)
 
     private WebView webView;
     private View splash;

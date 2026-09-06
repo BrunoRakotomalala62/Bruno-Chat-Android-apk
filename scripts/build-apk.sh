@@ -8,8 +8,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-VERSION_NAME="1.3.1"
-VERSION_CODE=8
+VERSION_NAME="1.3.2"
+VERSION_CODE=9
 PACKAGE="com.brunochat.app"
 # Clé de signature : NON incluse dans le dépôt (public).
 # Définis BRUNO_KEYSTORE + BRUNO_KEY_PASS (et optionnel BRUNO_KEY_ALIAS),
