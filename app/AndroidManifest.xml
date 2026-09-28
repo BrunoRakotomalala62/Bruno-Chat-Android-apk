@@ -5,6 +5,14 @@
     <!-- Accès au site et aux API de chat (toutes en HTTPS) -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Micro — AJOUT indispensable pour la discussion vocale.
+         Sans cette permission, Android refuse toute capture audio : la WebView
+         n'a aucun accès au microphone, et le site ne peut pas enregistrer.
+         La permission est demandée à l'utilisateur au premier appui sur 🎤
+         (voir MainActivity.onPermissionRequest), pas au démarrage. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
     <!-- Visibilité des navigateurs externes (liens ouverts hors de l'app) -->
     <queries>
         <intent>

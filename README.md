@@ -13,6 +13,16 @@ l'affiche en plein écran et ajoute le confort natif Android.
   padding bas, le champ de saisie reste donc visible au-dessus du clavier.
 - **Photos** : le sélecteur de fichiers Android s'ouvre pour les pièces
   jointes (images multiples).
+- **🎤 Discussion vocale** : autorise le **microphone** dans la WebView.
+  Indispensable : une WebView Android **n'implémente pas la Web Speech API**
+  (Chromium issue 40417848), donc le site ne peut pas utiliser la
+  reconnaissance vocale de Chrome. Il enregistre l'audio (`MediaRecorder`) et
+  le fait transcrire par `/api/stt`, ce qui exige **deux choses** de l'app :
+  1. la permission `RECORD_AUDIO` dans le manifeste ;
+  2. `onPermissionRequest` dans le `WebChromeClient`, qui **accorde** le micro à
+     la page (la permission du manifeste ne suffit pas !).
+  La permission système est demandée au **premier appui sur 🎤**, pas au
+  démarrage. Sans ces deux éléments, la WebView refuse toujours le micro.
 - **Liens externes** ouverts dans le navigateur ; **bouton retour** =
   historique du chat.
 - **Mode fluide auto** : si l'appareil est lent (moins de 35 images/s), le
@@ -22,6 +32,7 @@ l'affiche en plein écran et ajoute le confort natif Android.
 
 | Version | Code | Contenu |
 |---|---|---|
+| 1.3.3 | 10 | **Micro** : permission `RECORD_AUDIO` + `onPermissionRequest` → la discussion vocale fonctionne enfin dans l'app (le site enregistre et transcrit via `/api/stt`). Correctif de build : `javac -encoding UTF-8` |
 | 1.3.2 | 9 | Splash screen affiché ~5 s |
 | 1.3.1 | 8 | Splash screen affiché ~10 s |
 | 1.3.0 | 7 | Nouveau logo premium (bulle de chat 3D + étincelle IA) + icônes adaptatives Android 8+ |
