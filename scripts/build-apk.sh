@@ -8,8 +8,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-VERSION_NAME="1.3.2"
-VERSION_CODE=9
+VERSION_NAME="1.3.3"
+VERSION_CODE=10
 PACKAGE="com.brunochat.app"
 # Clé de signature : NON incluse dans le dépôt (public).
 # Définis BRUNO_KEYSTORE + BRUNO_KEY_PASS (et optionnel BRUNO_KEY_ALIAS),
@@ -48,7 +48,10 @@ export PATH="$PWD/$JDK_DIR/bin:$PATH"
 echo "[2/7] javac…"
 rm -rf build/classes build/dex build/res.zip build/app-unsigned.apk build/app-aligned.apk
 mkdir -p build/classes build/dex
-javac -source 8 -target 8 -classpath "$PLATFORM_JAR" \
+# -encoding UTF-8 : obligatoire — les commentaires du source sont en français,
+# et javac utilise l'encodage de la plateforme (US-ASCII avec LANG=C) sinon,
+# ce qui échoue sur chaque accent (« unmappable character »).
+javac -source 8 -target 8 -encoding UTF-8 -classpath "$PLATFORM_JAR" \
   -d build/classes $(find app/java -name '*.java')
 
 # ---------- 3) DEX ----------

@@ -1,5 +1,6 @@
 package com.brunochat.app;
 
+import android.Manifest;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
@@ -7,6 +8,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -25,6 +27,7 @@ import android.view.ViewTreeObserver;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.animation.OvershootInterpolator;
+import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -52,6 +55,12 @@ import android.widget.TextView;
  *    plein écran → on pousse la page manuellement) ;
  *  - sélection de photos (pièces jointes), liens externes dans le navigateur,
  *    bouton « retour » = historique du chat ;
+ *  - **micro** (AJOUT) : la WebView Android n'implémente PAS la Web Speech API,
+ *    donc le mode vocal du site ne pouvait pas fonctionner. On autorise ici la
+ *    capture audio demandée par la page (MediaRecorder → /api/stt) : il faut à
+ *    la fois la permission RECORD_AUDIO dans le manifeste ET onPermissionRequest
+ *    ci-dessous, sinon la WebView refuse le micro au site. La permission est
+ *    demandée au premier appui sur 🎤, pas au démarrage ;
  *  - si l'appareil est lent (fps < 35), le fond décoratif animé du site est
  *    figé automatiquement pour rester fluide.
  */
@@ -61,6 +70,7 @@ public class MainActivity extends Activity {
     private static final String APP_HOST = "site-gratuit-dynamique.vercel.app";
     private static final long MIN_SPLASH_MS = 5000; // durée min du splash : ~5 s
     private static final long MAX_SPLASH_MS = 15000; // sécurité si réseau très lent (>15 s)
+    private static final int REQ_MIC = 1002;        // demande de permission micro
 
     private WebView webView;
     private View splash;
@@ -72,6 +82,7 @@ public class MainActivity extends Activity {
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private ValueCallback<Uri[]> filePathCallback;
+    private PermissionRequest pendingMicRequest; // demande micro en attente
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -164,6 +175,39 @@ public class MainActivity extends Activity {
                     return false;
                 }
                 return true;
+            }
+
+            /* ================= Micro (discussion vocale) =================
+               La WebView n'a pas la Web Speech API de Chrome : le site utilise
+               donc MediaRecorder, qui déclenche onPermissionRequest côté page.
+               Sans cette méthode, la WebView refuse TOUJOURS le micro — et la
+               permission du manifeste ne suffit pas. */
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                runOnUiThread(() -> {
+                    boolean wantsAudio = false;
+                    for (String res : request.getResources()) {
+                        if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(res)) wantsAudio = true;
+                    }
+                    if (!wantsAudio) {
+                        request.deny();
+                        return;
+                    }
+                    if (Build.VERSION.SDK_INT < 23
+                            || checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                        request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
+                        return;
+                    }
+                    // Permission système pas encore accordée : on la demande,
+                    // puis on répond à la page dans onRequestPermissionsResult.
+                    pendingMicRequest = request;
+                    requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_MIC);
+                });
+            }
+
+            @Override
+            public void onPermissionRequestCanceled(PermissionRequest request) {
+                if (pendingMicRequest == request) pendingMicRequest = null;
             }
         });
 
@@ -409,6 +453,23 @@ public class MainActivity extends Activity {
                 "st.textContent='.orb{animation:none!important;}" +
                 "#particles{display:none!important;}';" +
                 "document.head.appendChild(st);})()", null);
+    }
+
+    /* ================= Résultat de la demande de permission micro ================= */
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != REQ_MIC) return;
+        PermissionRequest req = pendingMicRequest;
+        pendingMicRequest = null;
+        if (req == null) return;
+        boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+        if (granted) {
+            req.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
+        } else {
+            req.deny(); // le site affichera « micro refusé »
+        }
     }
 
     /* ================= Résultat du sélecteur de photos ================= */
